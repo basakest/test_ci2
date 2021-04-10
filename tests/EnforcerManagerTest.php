@@ -3,13 +3,34 @@
 namespace Casbin\CodeIgniter\Tests;
 
 use CodeIgniter\Test\CIDatabaseTestCase;
-use Config\Services
-;
+use Config\Services;
 use Config\Autoload;
 use Config\Modules;
+use Casbin\CodeIgniter\Models\RuleModel;
 
 class EnforcerManagerTest extends CIDatabaseTestCase
-{    
+{
+    protected function initDb()
+    {
+        $this->model = new RuleModel();
+        $config = Services::enforcer()->getDefaultConfig();
+        $table = $config['database']['rules_table'];
+        $this->model->setTable($table);
+        $this->model->emptyTable();
+        $this->model->insert(['ptype' => 'p', 'v0'  => 'alice', 'v1' => 'data1', 'v2' => 'read']);
+        $this->model->insert(['ptype' => 'p', 'v0'  => 'bob', 'v1' => 'data2', 'v2' => 'write']);
+        $this->model->insert(['ptype' => 'p', 'v0'  => 'data2_admin', 'v1' => 'data2', 'v2' => 'read']);
+        $this->model->insert(['ptype' => 'p', 'v0'  => 'data2_admin', 'v1' => 'data2', 'v2' => 'write']);
+        $this->model->insert(['ptype' => 'g', 'v0'  => 'alice', 'v1' => 'data2_admin']);
+    }
+
+    protected function getEnforcer()
+    {
+        $e = Services::enforcer(null, false);
+        $this->initDb();
+        return $e;
+    }
+
     protected function createApplication()
     {
         $app = parent::createApplication();
@@ -95,5 +116,41 @@ class EnforcerManagerTest extends CIDatabaseTestCase
         Services::enforcer()->removeFilteredPolicy(2, 'write');
         $this->assertFalse(Services::enforcer()->enforce('bob', 'data2', 'write'));
         $this->assertFalse(Services::enforcer()->enforce('alice', 'data2', 'write'));
+    }
+
+    public function testAddPolicies()
+    {
+        $policies = [
+            ['u1', 'd1', 'read'],
+            ['u2', 'd2', 'read'],
+            ['u3', 'd3', 'read'],
+        ];
+        $e = $this->getEnforcer();
+        $e->clearPolicy();
+        $this->assertEquals([], $e->getPolicy());
+        $e->addPolicies($policies);
+        $this->assertEquals($policies, $e->getPolicy());
+    }
+
+    public function testRemovePolicies()
+    {
+        $e = $this->getEnforcer();
+        
+        $this->assertEquals([
+            ['alice', 'data1', 'read'],
+            ['bob', 'data2', 'write'],
+            ['data2_admin', 'data2', 'read'],
+            ['data2_admin', 'data2', 'write'],
+        ], $e->getPolicy());
+
+        $e->removePolicies([
+            ['data2_admin', 'data2', 'read'],
+            ['data2_admin', 'data2', 'write'],
+        ]);
+
+        $this->assertEquals([
+            ['alice', 'data1', 'read'],
+            ['bob', 'data2', 'write']
+        ], $e->getPolicy());
     }
 }

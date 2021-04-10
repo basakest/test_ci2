@@ -7,6 +7,7 @@ namespace Casbin\CodeIgniter\Adapters;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use Casbin\Persist\AdapterHelper;
+use Casbin\Persist\BatchAdapter;
 use Casbin\CodeIgniter\Models\RuleModel;
 use Config\Database;
 
@@ -15,7 +16,7 @@ use Config\Database;
  *
  * @author techlee@qq.com
  */
-class DatabaseAdapter implements Adapter
+class DatabaseAdapter implements Adapter, BatchAdapter
 {
     use AdapterHelper;
 
@@ -160,5 +161,54 @@ class DatabaseAdapter implements Adapter
                 ++$count;
             }
         }
+    }
+
+    /**
+     * adds a policy rules to the storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     */
+    public function addPolicies(string $sec, string $ptype, array $rules): void
+    {
+        $cols = [];
+
+        foreach ($rules as $rule) {
+            $temp = [];
+            $temp['ptype'] = $ptype;
+            foreach ($rule as $key => $value) {
+                $temp['v' . strval($key)] = $value;
+            }
+            $cols[] = $temp;
+        }
+        
+        $this->model->insertBatch($cols);
+    }
+
+    /**
+     * removes policy rules from the storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     */
+    public function removePolicies(string $sec, string $ptype, array $rules): void
+    {
+        $instance = $this->model->where('ptype', $ptype);
+
+        foreach ($rules as $rule) {
+            foreach ($rule as $key => $value) {
+                $keys[] = 'v' . strval($key);
+                $con['v' . strval($key)][] = $value;
+            }
+        }
+        $keys = array_unique($keys);
+        foreach ($keys as $key) {
+            $instance->whereIn($key, $con[$key]);
+        }
+        $instance->delete();
     }
 }
