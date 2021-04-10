@@ -32,20 +32,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: create db_rules table
-        run: |
-          sudo apt-get install -y mysql-client
-          mysql --host 127.0.0.1 --port 3306 -u root -p -e "USE casbin; CREATE TABLE  if not exists  db_rules (
-            id BigInt(20) unsigned NOT NULL AUTO_INCREMENT,
-            ptype varchar(255) DEFAULT NULL,
-            v0 varchar(255) DEFAULT NULL,
-            v1 varchar(255) DEFAULT NULL,
-            v2 varchar(255) DEFAULT NULL,
-            v3 varchar(255) DEFAULT NULL,
-            v4 varchar(255) DEFAULT NULL,
-            v5 varchar(255) DEFAULT NULL,
-            PRIMARY KEY (id)
-            ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4"
+      # - name: create db_rules table
+      #   run: |
+      #     sudo apt-get install -y mysql-client
+      #     mysql --host 127.0.0.1 --port 3306 -u root -p -e "USE casbin; CREATE TABLE  if not exists  db_rules (
+      #       id BigInt(20) unsigned NOT NULL AUTO_INCREMENT,
+      #       ptype varchar(255) DEFAULT NULL,
+      #       v0 varchar(255) DEFAULT NULL,
+      #       v1 varchar(255) DEFAULT NULL,
+      #       v2 varchar(255) DEFAULT NULL,
+      #       v3 varchar(255) DEFAULT NULL,
+      #       v4 varchar(255) DEFAULT NULL,
+      #       v5 varchar(255) DEFAULT NULL,
+      #       PRIMARY KEY (id)
+      #       ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
