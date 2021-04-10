@@ -26,7 +26,7 @@ class EnforcerManagerTest extends CIDatabaseTestCase
 
     protected function getEnforcer()
     {
-        $e = Services::enforcer(null, false);
+        $e = Services::enforcer(null, true);
         $this->initDb();
         return $e;
     }
