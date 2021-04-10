@@ -26,7 +26,7 @@ class EnforcerManagerTest extends CIDatabaseTestCase
 
     protected function getEnforcer()
     {
-        $e = Services::enforcer(null, true);
+        $e = Services::enforcer(null, false);
         $this->initDb();
         return $e;
     }
@@ -125,11 +125,11 @@ class EnforcerManagerTest extends CIDatabaseTestCase
             ['u2', 'd2', 'read'],
             ['u3', 'd3', 'read'],
         ];
-        $e = $this->getEnforcer();
-        $e->clearPolicy();
-        $this->assertEquals([], $e->getPolicy());
-        $e->addPolicies($policies);
-        $this->assertEquals($policies, $e->getPolicy());
+        Services::enforcer() = $this->getEnforcer();
+        Services::enforcer()->clearPolicy();
+        $this->assertEquals([], Services::enforcer()->getPolicy());
+        Services::enforcer()->addPolicies($policies);
+        $this->assertEquals($policies, Services::enforcer()->getPolicy());
     }
 
     public function testRemovePolicies()
@@ -141,9 +141,9 @@ class EnforcerManagerTest extends CIDatabaseTestCase
             ['bob', 'data2', 'write'],
             ['data2_admin', 'data2', 'read'],
             ['data2_admin', 'data2', 'write'],
-        ], $e->getPolicy());
+        ], Services::enforcer()->getPolicy());
 
-        $e->removePolicies([
+        Services::enforcer()->removePolicies([
             ['data2_admin', 'data2', 'read'],
             ['data2_admin', 'data2', 'write'],
         ]);
@@ -151,6 +151,6 @@ class EnforcerManagerTest extends CIDatabaseTestCase
         $this->assertEquals([
             ['alice', 'data1', 'read'],
             ['bob', 'data2', 'write']
-        ], $e->getPolicy());
+        ], Services::enforcer()->getPolicy());
     }
 }
